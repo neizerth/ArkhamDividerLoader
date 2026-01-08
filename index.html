@@ -6,27 +6,63 @@
   <title>Arkham Divider</title>
   
   <script>
-    const host = "arkham-divider.com"
-    const globalUrl = `https://global.${host}`
-    const fallbackUrl = `https://fallback.${host}`
-    const follow = (url) => window.location.href = url;
-    const statusUrl = `${globalUrl}/status.json`
+    (async () => {
+      const host = "arkham-divider.com"
+      
+      const follow = (url) => window.location.href = url;
 
-    const signal = AbortSignal.timeout(3000);
+      const getStatusUrl = (host) => `${host}/status.json`
 
-    fetch(statusUrl, { signal }).then(response => {
-      if (!response.ok) {
-        follow(fallbackUrl);
-        return;
+      const getUrl = (url, timeout = 1000) => {
+        const signal = AbortSignal.timeout(timeout);
+
+        return fetch(url, { signal });
       }
 
-      return response.json()
-    }).then(() => {
-      follow(globalUrl)
-    })
-    .catch(() => {
-      window.location.href = fallbackUrl
-    })
+      const getDownloadTime = async (url, tries = 3) => {
+        const data = [];
+        for (let i = 0; i < tries; i++) {
+          const start = Date.now();
+          await getUrl(`${url}?start=${start}`)
+            .then(() => data.push(Date.now() - start))
+            .catch((e) => {
+              console.error(e)
+              data.push(Infinity);
+            });
+        }
+
+        const sum = data.reduce((acc, curr) => acc + curr, 0);
+        return sum / data.length;
+      }
+
+      const createResource = async (type) => {
+        const url = `https://${type}.${host}`
+        const statusUrl = getStatusUrl(url)
+        return {
+          type,
+          url,
+          statusTime: await getDownloadTime(statusUrl)
+        }
+      }
+
+      const globalResource = await createResource('global');
+      const fallbackResource = await createResource('fallback')
+
+      const k = globalResource.statusTime / fallbackResource.statusTime;
+
+      if (globalResource.statusTime === Infinity) {
+        return follow(fallbackResource.url);
+      }
+      
+      if (!navigator.languages || !navigator.languages.includes('ru')) {
+        return follow(globalResource.url)
+      }
+
+      if (globalResource.statusTime > fallbackResource.statusTime) {
+        return follow(fallbackResource.url);
+      }
+      follow(globalResource.url);
+    })();
   </script>
   <style>
     #content {
