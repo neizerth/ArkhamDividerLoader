@@ -9,13 +9,22 @@
     const host = "arkham-divider.com"
     const globalUrl = `https://global.${host}`
     const fallbackUrl = `https://fallback.${host}`
+    const follow = (url) => window.location.href = url;
     const statusUrl = `${globalUrl}/status.json`
 
     const signal = AbortSignal.timeout(3000);
 
     fetch(statusUrl, { signal }).then(response => {
-      window.location.href = response.ok ? globalUrl : fallbackUrl
-    }).catch(() => {
+      if (!response.ok) {
+        follow(fallbackUrl);
+        return;
+      }
+
+      return response.json()
+    }).then(() => {
+      follow(globalUrl)
+    })
+    .catch(() => {
       window.location.href = fallbackUrl
     })
   </script>
