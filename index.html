@@ -55,7 +55,7 @@
         return follow(fallbackResource.url);
       }
       
-      if (!navigator.languages || !navigator.languages.includes('ru')) {
+      if (!navigator.languages) {
         return follow(globalResource.url)
       }
 
