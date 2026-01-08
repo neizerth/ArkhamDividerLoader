@@ -9,8 +9,9 @@
     const host = "arkham-divider.com"
     const globalUrl = `https://global.${host}`
     const fallbackUrl = `https://fallback.${host}`
+    const statusUrl = `${globalUrl}/status.json`
 
-    fetch(globalUrl).then(response => {
+    fetch(statusUrl).then(response => {
       window.location.href = response.ok ? globalUrl : fallbackUrl
     })
   </script>
