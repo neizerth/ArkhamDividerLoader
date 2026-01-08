@@ -14,7 +14,7 @@
       const getStatusUrl = (host) => `${host}/status.json`
       const getLoaderUrl = (host) => `${host}/images/loader.gif`
 
-      const getUrl = (url, timeout = 1000) => {
+      const getUrl = (url, timeout = 3000) => {
         const signal = AbortSignal.timeout(timeout);
 
         return fetch(url, { signal });
