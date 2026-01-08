@@ -11,8 +11,12 @@
     const fallbackUrl = `https://fallback.${host}`
     const statusUrl = `${globalUrl}/status.json`
 
-    fetch(statusUrl).then(response => {
+    const signal = AbortSignal.timeout(3000);
+
+    fetch(statusUrl, { signal }).then(response => {
       window.location.href = response.ok ? globalUrl : fallbackUrl
+    }).catch(() => {
+      window.location.href = fallbackUrl
     })
   </script>
   <style>
