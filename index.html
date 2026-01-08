@@ -51,6 +51,10 @@
 
       const k = globalResource.statusTime / fallbackResource.statusTime;
 
+      if (fallbackResource.statusTime === Infinity) {
+        return follow(globalResource.url);
+      }
+
       if (globalResource.statusTime === Infinity) {
         return follow(fallbackResource.url);
       }
