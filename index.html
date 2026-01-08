@@ -59,6 +59,10 @@
         return follow(globalResource.url)
       }
 
+      if (navigator.languages.includes('ru')) {
+        return follow(fallbackResource.url);
+      }
+
       if (globalResource.statusTime > fallbackResource.statusTime) {
         return follow(fallbackResource.url);
       }
