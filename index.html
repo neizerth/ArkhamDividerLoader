@@ -40,8 +40,11 @@
       }
 
       const createResource = async (type) => {
-        const url = `https://${type}.${host}`
-        const loaderUrl = getLoaderUrl(url)
+        const baseUrl = `https://${type}.${host}`
+        const queryString = window.location.search
+        const hash = window.location.hash
+        const url = `${baseUrl}${queryString}${hash}`
+        const loaderUrl = getLoaderUrl(baseUrl)
         return {
           type,
           url,
