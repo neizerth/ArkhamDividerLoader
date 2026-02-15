@@ -113,7 +113,7 @@
       for (const link of mirrors) {
         const baseUrl = link.getAttribute('href');
         link.setAttribute('href', `${baseUrl}${queryString}${hash}`);
-      });
+      };
 
       const globalResource = await createResource('global');
       const fallbackResource = await createResource('fallback')
