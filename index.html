@@ -222,74 +222,160 @@
     </div>
   </div>
   <script>
-    (async () => {
-      const host = "arkham-divider.com"
-      
-      const follow = (url) => window.location.href = url;
+    (() => {
+      const host = "arkham-divider.com";
+      const follow = (url) => (window.location.href = url);
 
-      const getStatusUrl = (host) => `${host}/status.json`
-      const getLoaderUrl = (host) => `${host}/images/loader.gif`
-      
       const queryString = window.location.search;
       const hash = window.location.hash;
 
-      const mirrors = [...document.querySelectorAll('.mirror')];
+      const getTargetUrl = (type) =>
+        `https://${type}.${host}${queryString}${hash}`;
 
-      const getUrl = (url, timeout = 3000) => {
-        const signal = AbortSignal.timeout(timeout);
+      const getLoaderUrl = (baseUrl) => `${baseUrl}/images/loader.gif`;
 
-        return fetch(url, { signal });
-      }
-
-      const getDownloadTime = async (url, tries = 3) => {
-        const data = [];
-        for (let i = 0; i < tries; i++) {
-          const start = Date.now();
-          await getUrl(`${url}?start=${start}`)
-            .then(() => data.push(Date.now() - start))
-            .catch((e) => {
-              console.error(e)
-              data.push(Infinity);
-            });
-        }
-
-        const sum = data.reduce((acc, curr) => acc + curr, 0);
-        return sum / data.length;
-      }
-
-      const createResource = async (type) => {
-        const baseUrl = `https://${type}.${host}`
-        const url = `${baseUrl}${queryString}${hash}`
-        const loaderUrl = getLoaderUrl(baseUrl)
-        return {
-          type,
-          url,
-          statusTime: await getDownloadTime(loaderUrl)
-        }
-      }
-      
-      for (const link of mirrors) {
-        const baseUrl = link.getAttribute('href');
-        link.setAttribute('href', `${baseUrl}${queryString}${hash}`);
+      const isRu = () => {
+        const langs = navigator.languages?.length
+          ? navigator.languages
+          : [navigator.language].filter(Boolean);
+        return langs.some((l) => String(l).toLowerCase().startsWith("ru"));
       };
 
-      const globalResource = await createResource('global');
-      const fallbackResource = await createResource('fallback')
+      const applyI18n = () => {
+        const translations = {
+          en: {
+            languageLabel: "Language",
+            loading: "Loading…",
+            global: "Global",
+            mirror: "Mirror",
+          },
+          ru: {
+            languageLabel: "Язык",
+            loading: "Загрузка…",
+            global: "Global",
+            mirror: "Зеркало (Россия)",
+          },
+          fr: {
+            languageLabel: "Langue",
+            loading: "Chargement…",
+            global: "Global",
+            mirror: "Miroir",
+          },
+          de: {
+            languageLabel: "Sprache",
+            loading: "Wird geladen…",
+            global: "Global",
+            mirror: "Spiegel",
+          },
+          es: {
+            languageLabel: "Idioma",
+            loading: "Cargando…",
+            global: "Global",
+            mirror: "Espejo",
+          },
+          it: {
+            languageLabel: "Lingua",
+            loading: "Caricamento…",
+            global: "Globale",
+            mirror: "Mirror",
+          },
+          pl: {
+            languageLabel: "Język",
+            loading: "Ładowanie…",
+            global: "Globalnie",
+            mirror: "Mirror",
+          },
+          ko: {
+            languageLabel: "언어",
+            loading: "로딩 중…",
+            global: "Global",
+            mirror: "미러",
+          },
+        };
 
-      const k = globalResource.statusTime / fallbackResource.statusTime;
+        const normalizeLang = (lang) => {
+          if (!lang) return "en";
+          const lower = String(lang).toLowerCase();
+          const base = lower.split("-")[0];
+          return Object.prototype.hasOwnProperty.call(translations, base)
+            ? base
+            : "en";
+        };
 
-      if (globalResource.statusTime === Infinity) {
-        return follow(fallbackResource.url);
-      }
-      
-      if (navigator.languages.includes('ru')) {
-        return follow(fallbackResource.url);
-      }
+        const getInitialLang = () => {
+          const langs = navigator.languages?.length
+            ? navigator.languages
+            : [navigator.language].filter(Boolean);
 
-      if (globalResource.statusTime > fallbackResource.statusTime) {
-        return follow(fallbackResource.url);
-      }
-      follow(globalResource.url);
+          for (const l of langs) {
+            const normalized = normalizeLang(l);
+            if (normalized !== "en") return normalized;
+          }
+          return "en";
+        };
+
+        const lang = getInitialLang();
+        const dict = translations[lang] ?? translations.en;
+        document.documentElement.lang = lang;
+
+        for (const el of document.querySelectorAll("[data-i18n]")) {
+          const key = el.getAttribute("data-i18n");
+          if (!key) continue;
+          const value = dict[key] ?? translations.en[key];
+          if (value) el.textContent = value;
+        }
+      };
+
+      const updateMirrorLinks = () => {
+        for (const link of document.querySelectorAll(".mirror")) {
+          const baseUrl = link.getAttribute("href");
+          if (!baseUrl) continue;
+          link.setAttribute("href", `${baseUrl}${queryString}${hash}`);
+        }
+      };
+
+      const probe = async (type, timeoutMs = 1200) => {
+        const baseUrl = `https://${type}.${host}`;
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        const url = getTargetUrl(type);
+
+        try {
+          // mode:'no-cors' lets us cheaply probe reachability without needing CORS.
+          await fetch(`${getLoaderUrl(baseUrl)}?t=${Date.now()}`, {
+            signal: controller.signal,
+            cache: "no-store",
+            mode: "no-cors",
+          });
+          return { type, url };
+        } finally {
+          clearTimeout(timer);
+        }
+      };
+
+      const pick = async () => {
+        try {
+          // If the user's language is Russian, prefer fallback unless global is clearly reachable fast.
+          const ruBias = isRu();
+          const globalTimeout = ruBias ? 800 : 1200;
+          const fallbackTimeout = 1200;
+          return await Promise.any([
+            probe("global", globalTimeout),
+            probe("fallback", fallbackTimeout),
+          ]);
+        } catch {
+          return { type: "fallback", url: getTargetUrl("fallback") };
+        }
+      };
+
+      const init = async () => {
+        applyI18n();
+        updateMirrorLinks();
+        const chosen = await pick();
+        follow(chosen.url);
+      };
+
+      init();
     })();
   </script>
 </body>
