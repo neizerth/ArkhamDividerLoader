@@ -10,15 +10,58 @@
   
   <style>
     :root {
-      --paper-0: #f3ede0;
-      --paper-1: #fbf7ee;
-      --ink-0: #191614;
-      --ink-1: rgba(25, 22, 20, 0.74);
-      --brass: #8a6a1f;
-      --brass-2: #b08a3c;
-      --panel: rgba(255, 255, 255, 0.75);
-      --stroke: rgba(138, 106, 31, 0.30);
-      --shadow: rgba(12, 10, 8, 0.10);
+      /* Page */
+      --color-page-bg: #fff;
+
+      /* Typography */
+      --color-ink-0: #191614;
+      --color-ink-1: rgba(25, 22, 20, 0.74);
+
+      /* Warm accent (buttons, rule, progress when “live”) */
+      --color-brass: #8a6a1f;
+      --color-brass-bright: #b08a3c;
+      --color-brass-16: rgba(176, 138, 60, 0.16);
+      --color-brass-22: rgba(176, 138, 60, 0.22);
+      --color-brass-border: rgba(138, 106, 31, 0.35);
+      --color-brass-border-strong: rgba(176, 138, 60, 0.70);
+      --color-brass-outline: rgba(176, 138, 60, 0.85);
+      --color-rule-mid: rgba(138, 106, 31, 0.55);
+      --color-progress-fill-a: rgba(176, 138, 60, 0.30);
+      --color-progress-fill-b: rgba(176, 138, 60, 0.78);
+      --color-progress-track-accent-bg: rgba(25, 22, 20, 0.10);
+      --color-progress-track-accent-border: rgba(138, 106, 31, 0.22);
+
+      /* Panel chrome */
+      --color-panel-bg: #fff;
+      --color-panel-stroke: rgba(138, 106, 31, 0.30);
+      --color-panel-shadow: rgba(12, 10, 8, 0.08);
+      --color-panel-inset: rgba(0, 0, 0, 0.04);
+
+      /* Loader phase (grayscale) — first ~2s */
+      --color-loader-icon: #6f6f6f;
+      --color-loader-progress-track-bg: rgba(0, 0, 0, 0.06);
+      --color-loader-progress-track-border: rgba(0, 0, 0, 0.12);
+      --color-loader-progress-fill-a: rgba(0, 0, 0, 0.22);
+      --color-loader-progress-fill-b: rgba(0, 0, 0, 0.52);
+      --color-loader-shimmer-mid: rgba(255, 255, 255, 0.35);
+      --opacity-loader-shimmer: 0.45;
+
+      /* Accent phase — shimmer on progress */
+      --color-accent-shimmer-mid: rgba(255, 255, 255, 0.55);
+      --opacity-accent-shimmer: 0.5;
+
+      /* Sigil glow (neutral; tweak in :root if needed) */
+      --color-icon-glow-soft: rgba(12, 10, 8, 0.14);
+      --color-icon-glow-strong: rgba(12, 10, 8, 0.12);
+
+      /* Aliases used elsewhere */
+      --ink-0: var(--color-ink-0);
+      --ink-1: var(--color-ink-1);
+      --brass: var(--color-brass);
+      --brass-2: var(--color-brass-bright);
+      --panel: var(--color-panel-bg);
+      --stroke: var(--color-panel-stroke);
+      --shadow: var(--color-panel-shadow);
     }
 
     html, body {
@@ -28,10 +71,7 @@
 
     body {
       margin: 0;
-      background:
-        radial-gradient(1200px 800px at 50% 30%, rgba(176, 138, 60, 0.14), transparent 60%),
-        radial-gradient(900px 600px at 20% 85%, rgba(0, 0, 0, 0.06), transparent 55%),
-        linear-gradient(180deg, var(--paper-1), var(--paper-0));
+      background: var(--color-page-bg);
       color: var(--ink-1);
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     }
@@ -48,15 +88,66 @@
     }
 
     .panel {
+      /* Active palette for children — switch in .panel--ready */
+      --icon-fill: var(--color-loader-icon);
+      --progress-track-bg: var(--color-loader-progress-track-bg);
+      --progress-track-border: var(--color-loader-progress-track-border);
+      --progress-fill-a: var(--color-loader-progress-fill-a);
+      --progress-fill-b: var(--color-loader-progress-fill-b);
+      --progress-shimmer-mid: var(--color-loader-shimmer-mid);
+      --progress-shimmer-opacity: var(--opacity-loader-shimmer);
+
       width: min(520px, 100%);
-      padding: 22px 18px;
+      padding: 8px 0;
       border-radius: 14px;
+      background: transparent;
+      border: 1px solid transparent;
+      box-shadow: none;
+      transition:
+        background 0.35s ease,
+        border-color 0.35s ease,
+        box-shadow 0.35s ease,
+        padding 0.35s ease;
+    }
+
+    .panel.panel--ready {
+      --icon-fill: var(--color-brass-bright);
+      --progress-track-bg: var(--color-progress-track-accent-bg);
+      --progress-track-border: var(--color-progress-track-accent-border);
+      --progress-fill-a: var(--color-progress-fill-a);
+      --progress-fill-b: var(--color-progress-fill-b);
+      --progress-shimmer-mid: var(--color-accent-shimmer-mid);
+      --progress-shimmer-opacity: var(--opacity-accent-shimmer);
+
+      padding: 22px 18px;
       background: var(--panel);
-      border: 1px solid var(--stroke);
+      border-color: var(--stroke);
       box-shadow:
         0 14px 40px var(--shadow),
-        0 0 0 1px rgba(255, 255, 255, 0.65) inset;
-      backdrop-filter: blur(6px);
+        0 0 0 1px var(--color-panel-inset) inset;
+    }
+
+    .panel__rest {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      visibility: hidden;
+      pointer-events: none;
+      transition:
+        max-height 0.45s ease,
+        opacity 0.35s ease,
+        visibility 0s linear 0.35s;
+    }
+
+    .panel.panel--ready .panel__rest {
+      max-height: 420px;
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition:
+        max-height 0.45s ease,
+        opacity 0.35s ease 0.05s,
+        visibility 0s linear 0s;
     }
 
     .title {
@@ -72,7 +163,7 @@
 
     .rule {
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(138, 106, 31, 0.55), transparent);
+      background: linear-gradient(90deg, transparent, var(--color-rule-mid), transparent);
       margin: 12px 0 18px;
     }
 
@@ -90,19 +181,20 @@
       display: inline-block;
       height: 2em;
       width: 2em;
-      color: var(--brass-2);
+      color: var(--icon-fill);
       animation: sigil-blink 2400ms ease-in-out infinite;
       will-change: opacity, filter;
+      transition: color 0.4s ease;
     }
 
     @keyframes sigil-blink {
       0%, 100% {
         opacity: 0.55;
-        filter: drop-shadow(0 2px 2px rgba(12, 10, 8, 0.14));
+        filter: drop-shadow(0 2px 2px var(--color-icon-glow-soft));
       }
       50% {
         opacity: 1;
-        filter: drop-shadow(0 8px 10px rgba(12, 10, 8, 0.12));
+        filter: drop-shadow(0 8px 10px var(--color-icon-glow-strong));
       }
     }
 
@@ -116,9 +208,10 @@
       margin-top: 14px;
       height: 6px;
       border-radius: 999px;
-      background: rgba(25, 22, 20, 0.10);
-      border: 1px solid rgba(138, 106, 31, 0.18);
+      background: var(--progress-track-bg);
+      border: 1px solid var(--progress-track-border);
       overflow: hidden;
+      transition: background 0.4s ease, border-color 0.4s ease;
     }
 
     .progress__bar {
@@ -129,10 +222,11 @@
       overflow: hidden;
       background: linear-gradient(
         90deg,
-        rgba(176, 138, 60, 0.30),
-        rgba(176, 138, 60, 0.78)
+        var(--progress-fill-a),
+        var(--progress-fill-b)
       );
       animation: load-progress 12s cubic-bezier(0.2, 0.9, 0.2, 1) forwards;
+      transition: background 0.4s ease;
     }
 
     .progress__bar::after {
@@ -145,13 +239,14 @@
       background: linear-gradient(
         90deg,
         transparent,
-        rgba(255, 255, 255, 0.55),
+        var(--progress-shimmer-mid),
         transparent
       );
       transform: skewX(-18deg);
-      opacity: 0.45;
+      opacity: var(--progress-shimmer-opacity);
       animation: sweep 2200ms linear infinite;
       pointer-events: none;
+      transition: background 0.4s ease, opacity 0.4s ease;
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -197,16 +292,16 @@
       letter-spacing: 0.05em;
       padding: 9px 12px;
       border-radius: 10px;
-      border: 1px solid rgba(138, 106, 31, 0.35);
-      background: linear-gradient(180deg, rgba(176, 138, 60, 0.16), rgba(255, 255, 255, 0));
+      border: 1px solid var(--color-brass-border);
+      background: linear-gradient(180deg, var(--color-brass-16), rgba(255, 255, 255, 0));
       transition: transform 140ms ease, background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
     }
 
     .mirror:hover {
       transform: translateY(-1px);
-      border-color: rgba(176, 138, 60, 0.70);
-      background: linear-gradient(180deg, rgba(176, 138, 60, 0.22), rgba(255, 255, 255, 0));
-      box-shadow: 0 10px 18px rgba(12, 10, 8, 0.10);
+      border-color: var(--color-brass-border-strong);
+      background: linear-gradient(180deg, var(--color-brass-22), rgba(255, 255, 255, 0));
+      box-shadow: 0 10px 18px var(--color-panel-shadow);
     }
 
     .mirror:active {
@@ -214,16 +309,14 @@
     }
 
     .mirror:focus-visible {
-      outline: 2px solid rgba(176, 138, 60, 0.85);
+      outline: 2px solid var(--color-brass-outline);
       outline-offset: 3px;
     }
   </style>
 </head>
 <body>
   <div class="content">
-    <div class="panel">
-      <h1 class="title">Arkham Divider</h1>
-      <div class="rule"></div>
+    <div class="panel" id="loaderPanel">
       <div class="loading">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 943 928" width="943" height="928" class="icon"><path fill="currentColor" d="M331.979,0.023c80.571,-1.332 155.959,50.764 187.93,130.289c20.646,176.85 -60.912,151.474 -103.316,198.238c77.012,-146.046 -68.153,-236.515 -126.145,-100.211c-6.31,86.246 42.961,112.735 87.543,154.211c87.358,34.794 115.798,119.092 122.664,183.766c-34.051,22.456 -66.852,48.573 -82.254,112.176c-47.274,-177.592 -130.643,-163.815 -215.449,-204.965c-192.486,-134.634 -84.481,-307.171 -40.777,-375.137c49.458,-67.974 111.011,-97.395 169.805,-98.367zM707.861,258.203c75.149,0.622 119.326,69.73 121.031,106.953c42.034,139.55 -112.548,237.949 -172.164,280.539c-62.352,-13.222 -134.494,27.743 -221.668,92.973l-0.004,0.004c-18.094,-114.36 139.924,-210.762 170.73,-228.902c55.298,-23.012 84.441,-54.376 93.527,-87.176c24.262,-81.186 -17.398,-63.054 -42.59,-70.102c-35.722,1.622 -57.806,23.704 -80.68,44.582c-5.938,-82.114 28.998,-99.698 61.66,-121.086c25.646,-12.767 49.114,-17.959 70.156,-17.785zM321.066,556.156c110.926,122.71 73.396,259.154 29.184,287.082l-93.855,-95.523c55.44,-81.374 -52.749,-159.454 -81.375,-174.484c-100.766,-53.306 -164.927,47.274 -118.719,138.996c-125.23,-108.203 -16.188,-221.84 110.73,-223.219c53.588,-0.583 110.361,18.846 154.035,67.148zM640.191,666.393c42.682,0.383 96.01,11.345 163.512,36.977c85.364,9.788 102.207,-6.683 139.367,-31.875c-2.738,28.626 -20.877,109.259 -224.359,79.707c-69.774,0 -135.557,-24.821 -209.695,78.125c-4,7.422 -11.784,9.602 -8.168,22.824c-1.814,8.912 -4.312,12.16 -8.496,16.328c-34.98,28.068 -36.607,40.414 -53.309,53.262c-4.122,4.3 -3.991,11.547 -13.223,0.133l-52.375,-53.816c-5.798,-9.044 -3.983,-21.193 2.367,-26.441l0.004,0.059c42.032,-59.292 105.496,-117.609 164.742,-148.785c24.914,-16.681 56.951,-26.878 99.633,-26.496z" /></svg>
 
@@ -232,13 +325,17 @@
       <div class="progress" aria-hidden="true">
         <div class="progress__bar"></div>
       </div>
-      <div class="mirrors">
-        <a class="mirror" href="https://global.arkham-divider.com">
-          🌍 <span data-i18n="global">Global</span>
-        </a>
-        <a class="mirror" href="https://fallback.arkham-divider.com">
-          🪩 <span data-i18n="mirror">Mirror</span>
-        </a>
+      <div class="panel__rest" aria-hidden="true">
+        <h1 class="title">Arkham Divider</h1>
+        <div class="rule"></div>
+        <div class="mirrors">
+          <a class="mirror" href="https://global.arkham-divider.com">
+            🌍 <span data-i18n="global">Global</span>
+          </a>
+          <a class="mirror" href="https://fallback.arkham-divider.com">
+            🪩 <span data-i18n="mirror">Mirror</span>
+          </a>
+        </div>
       </div>
     </div>
   </div>
@@ -392,6 +489,13 @@
       const init = async () => {
         applyI18n();
         updateMirrorLinks();
+
+        const panel = document.getElementById("loaderPanel");
+        window.setTimeout(() => {
+          panel?.classList.add("panel--ready");
+          panel?.querySelector(".panel__rest")?.setAttribute("aria-hidden", "false");
+        }, 2000);
+
         const chosen = await pick();
         follow(chosen.url);
       };
