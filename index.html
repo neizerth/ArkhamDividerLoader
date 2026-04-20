@@ -150,6 +150,30 @@
         visibility 0s linear 0s;
     }
 
+    @media (max-width: 360px) {
+      .content {
+        padding: 14px;
+      }
+
+      .panel.panel--ready {
+        padding: 18px 14px;
+      }
+
+      .loading {
+        font-size: 13px;
+      }
+
+      .mirrors {
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .mirror {
+        flex: 1 1 140px;
+        text-align: center;
+      }
+    }
+
     .rule {
       height: 1px;
       background: linear-gradient(90deg, transparent, var(--color-rule-mid), transparent);
