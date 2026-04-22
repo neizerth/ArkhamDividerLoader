@@ -64,9 +64,18 @@
       --shadow: var(--color-panel-shadow);
     }
 
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
     html, body {
       height: 100%;
       min-height: 100vh;
+      max-width: 100%;
+    }
+
+    html {
+      overflow-x: clip;
     }
 
     body {
@@ -74,6 +83,7 @@
       background: var(--color-page-bg);
       color: var(--ink-1);
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      overflow-x: hidden;
     }
 
     .content {
@@ -82,8 +92,10 @@
       align-items: center;
       justify-content: center;
       gap: 20px;
-      height: 100vh;
-      width: 100vw;
+      min-height: 100vh;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
       padding: 24px;
     }
 
@@ -98,6 +110,8 @@
       --progress-shimmer-opacity: var(--opacity-loader-shimmer);
 
       width: min(520px, 100%);
+      max-width: 100%;
+      min-width: 0;
       padding: 8px 0;
       border-radius: 14px;
       background: transparent;
@@ -129,6 +143,8 @@
 
     .panel__rest {
       max-height: 0;
+      min-width: 0;
+      width: 100%;
       opacity: 0;
       overflow: hidden;
       visibility: hidden;
@@ -184,10 +200,13 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-wrap: wrap;
       gap: 10px;
       font-size: 14px;
       letter-spacing: 0.02em;
       color: var(--ink-1);
+      min-width: 0;
+      max-width: 100%;
     }
 
     .icon {
@@ -219,6 +238,9 @@
 
     .progress {
       margin-top: 14px;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
       height: 6px;
       border-radius: 999px;
       background: var(--progress-track-bg);
