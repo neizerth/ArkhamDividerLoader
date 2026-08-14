@@ -145,6 +145,14 @@
     }
   };
 
+  const onLoad = (fn) => {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", fn);
+    } else {
+      fn();
+    }
+  };
+
   const init = async () => {
     applyI18n();
     updateMirrorLinks();
@@ -159,5 +167,5 @@
     follow(chosen.url);
   };
 
-  init();
+  onLoad(init);
 })();
