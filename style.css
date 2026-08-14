@@ -1,0 +1,338 @@
+:root {
+  /* Page */
+  --color-page-bg: #fff;
+
+  /* Typography */
+  --color-ink-0: #191614;
+  --color-ink-1: rgba(25, 22, 20, 0.74);
+
+  /* Warm accent (buttons, rule, progress when “live”) */
+  --color-brass: #8a6a1f;
+  --color-brass-bright: #b08a3c;
+  --color-brass-16: rgba(176, 138, 60, 0.16);
+  --color-brass-22: rgba(176, 138, 60, 0.22);
+  --color-brass-border: rgba(138, 106, 31, 0.35);
+  --color-brass-border-strong: rgba(176, 138, 60, 0.70);
+  --color-brass-outline: rgba(176, 138, 60, 0.85);
+  --color-rule-mid: rgba(138, 106, 31, 0.55);
+  --color-progress-fill-a: rgba(176, 138, 60, 0.30);
+  --color-progress-fill-b: rgba(176, 138, 60, 0.78);
+  --color-progress-track-accent-bg: rgba(25, 22, 20, 0.10);
+  --color-progress-track-accent-border: rgba(138, 106, 31, 0.22);
+
+  /* Panel chrome */
+  --color-panel-bg: #fff;
+  --color-panel-stroke: rgba(138, 106, 31, 0.30);
+  --color-panel-shadow: rgba(12, 10, 8, 0.08);
+  --color-panel-inset: rgba(0, 0, 0, 0.04);
+
+  /* Loader phase (grayscale) — first ~2s */
+  --color-loader-icon: #6f6f6f;
+  --color-loader-progress-track-bg: rgba(0, 0, 0, 0.06);
+  --color-loader-progress-track-border: rgba(0, 0, 0, 0.12);
+  --color-loader-progress-fill-a: rgba(0, 0, 0, 0.22);
+  --color-loader-progress-fill-b: rgba(0, 0, 0, 0.52);
+  --color-loader-shimmer-mid: rgba(255, 255, 255, 0.35);
+  --opacity-loader-shimmer: 0.45;
+
+  /* Accent phase — shimmer on progress */
+  --color-accent-shimmer-mid: rgba(255, 255, 255, 0.55);
+  --opacity-accent-shimmer: 0.5;
+
+  /* Sigil glow (neutral; tweak in :root if needed) */
+  --color-icon-glow-soft: rgba(12, 10, 8, 0.14);
+  --color-icon-glow-strong: rgba(12, 10, 8, 0.12);
+
+  /* Aliases used elsewhere */
+  --ink-0: var(--color-ink-0);
+  --ink-1: var(--color-ink-1);
+  --brass: var(--color-brass);
+  --brass-2: var(--color-brass-bright);
+  --panel: var(--color-panel-bg);
+  --stroke: var(--color-panel-stroke);
+  --shadow: var(--color-panel-shadow);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  min-height: 100vh;
+  max-width: 100%;
+}
+
+html {
+  overflow-x: clip;
+}
+
+body {
+  margin: 0;
+  background: var(--color-page-bg);
+  color: var(--ink-1);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  overflow-x: hidden;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 24px;
+}
+
+.panel {
+  /* Active palette for children — switch in .panel--ready */
+  --icon-fill: var(--color-loader-icon);
+  --progress-track-bg: var(--color-loader-progress-track-bg);
+  --progress-track-border: var(--color-loader-progress-track-border);
+  --progress-fill-a: var(--color-loader-progress-fill-a);
+  --progress-fill-b: var(--color-loader-progress-fill-b);
+  --progress-shimmer-mid: var(--color-loader-shimmer-mid);
+  --progress-shimmer-opacity: var(--opacity-loader-shimmer);
+
+  width: min(520px, 100%);
+  max-width: 100%;
+  min-width: 0;
+  padding: 8px 0;
+  border-radius: 14px;
+  background: transparent;
+  border: 1px solid transparent;
+  box-shadow: none;
+  transition:
+    background 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.35s ease,
+    padding 0.35s ease;
+}
+
+.panel.panel--ready {
+  --icon-fill: var(--color-brass-bright);
+  --progress-track-bg: var(--color-progress-track-accent-bg);
+  --progress-track-border: var(--color-progress-track-accent-border);
+  --progress-fill-a: var(--color-progress-fill-a);
+  --progress-fill-b: var(--color-progress-fill-b);
+  --progress-shimmer-mid: var(--color-accent-shimmer-mid);
+  --progress-shimmer-opacity: var(--opacity-accent-shimmer);
+
+  padding: 22px 18px;
+  background: var(--panel);
+  border-color: var(--stroke);
+  box-shadow:
+    0 14px 40px var(--shadow),
+    0 0 0 1px var(--color-panel-inset) inset;
+}
+
+.panel__rest {
+  max-height: 0;
+  min-width: 0;
+  width: 100%;
+  opacity: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    max-height 0.45s ease,
+    opacity 0.35s ease,
+    visibility 0s linear 0.35s;
+}
+
+.panel.panel--ready .panel__rest {
+  max-height: 420px;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    max-height 0.45s ease,
+    opacity 0.35s ease 0.05s,
+    visibility 0s linear 0s;
+}
+
+@media (max-width: 360px) {
+  .content {
+    padding: 14px;
+  }
+
+  .panel.panel--ready {
+    padding: 18px 14px;
+  }
+
+  .loading {
+    font-size: 13px;
+  }
+
+  .mirrors {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .mirror {
+    flex: 1 1 140px;
+    text-align: center;
+  }
+}
+
+.rule {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-rule-mid), transparent);
+  margin: 12px 0 18px;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  color: var(--ink-1);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.icon {
+  display: inline-block;
+  height: 2em;
+  width: 2em;
+  color: var(--icon-fill);
+  animation: sigil-blink 2400ms ease-in-out infinite;
+  will-change: opacity, filter;
+  transition: color 0.4s ease;
+}
+
+@keyframes sigil-blink {
+  0%, 100% {
+    opacity: 0.55;
+    filter: drop-shadow(0 2px 2px var(--color-icon-glow-soft));
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 8px 10px var(--color-icon-glow-strong));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .icon {
+    animation: none;
+  }
+}
+
+.progress {
+  margin-top: 14px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--progress-track-bg);
+  border: 1px solid var(--progress-track-border);
+  overflow: hidden;
+  transition: background 0.4s ease, border-color 0.4s ease;
+}
+
+.progress__bar {
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    90deg,
+    var(--progress-fill-a),
+    var(--progress-fill-b)
+  );
+  animation: load-progress 12s cubic-bezier(0.2, 0.9, 0.2, 1) forwards;
+  transition: background 0.4s ease;
+}
+
+.progress__bar::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -35%;
+  width: 35%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--progress-shimmer-mid),
+    transparent
+  );
+  transform: skewX(-18deg);
+  opacity: var(--progress-shimmer-opacity);
+  animation: sweep 2200ms linear infinite;
+  pointer-events: none;
+  transition: background 0.4s ease, opacity 0.4s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress__bar {
+    animation: none;
+    width: 45%;
+  }
+
+  .progress__bar::after {
+    display: none;
+  }
+}
+
+@keyframes load-progress {
+  0% { width: 0%; }
+  20% { width: 38%; }
+  45% { width: 62%; }
+  70% { width: 78%; }
+  88% { width: 86%; }
+  100% { width: 92%; }
+}
+
+@keyframes sweep {
+  0% { left: -35%; }
+  100% { left: 110%; }
+}
+
+.mirrors {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.mirror {
+  color: var(--ink-0);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--color-brass-border);
+  background: linear-gradient(180deg, var(--color-brass-16), rgba(255, 255, 255, 0));
+  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.mirror:hover {
+  transform: translateY(-1px);
+  border-color: var(--color-brass-border-strong);
+  background: linear-gradient(180deg, var(--color-brass-22), rgba(255, 255, 255, 0));
+  box-shadow: 0 10px 18px var(--color-panel-shadow);
+}
+
+.mirror:active {
+  transform: translateY(0px);
+}
+
+.mirror:focus-visible {
+  outline: 2px solid var(--color-brass-outline);
+  outline-offset: 3px;
+}
