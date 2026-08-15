@@ -11,7 +11,7 @@
   const getTargetUrl = (type) =>
     `https://${type}.${host}${pathname}${queryString}${hash}`;
 
-  const getLoaderUrl = (baseUrl) => `${baseUrl}/images/loader.gif`;
+  const getLoaderUrl = (baseUrl) => `${baseUrl}/blank.png`;
 
   const isRu = () => {
     const langs = navigator.languages?.length
@@ -111,37 +111,69 @@
     }
   };
 
-  const probe = async (type, timeoutMs = 1200) => {
+  const probe = async (type, timeoutMs = 1200, signal) => {
     const baseUrl = `https://${type}.${host}`;
+    const url = getTargetUrl(type);
+    const src = `${getLoaderUrl(baseUrl)}?t=${Date.now()}`;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
-    const url = getTargetUrl(type);
+    const onAbort = () => controller.abort();
+    signal?.addEventListener("abort", onAbort, { once: true });
+    if (signal?.aborted) controller.abort();
 
     try {
-      // mode:'no-cors' lets us cheaply probe reachability without needing CORS.
-      await fetch(`${getLoaderUrl(baseUrl)}?t=${Date.now()}`, {
-        signal: controller.signal,
-        cache: "no-store",
-        mode: "no-cors",
-      });
-      return { type, url };
+      try {
+        const response = await fetch(src, {
+          signal: controller.signal,
+          cache: "no-store",
+          mode: "cors",
+        });
+        if (!response.ok) throw new Error("http");
+        response.body?.cancel();
+        return { type, url };
+      } catch (error) {
+        if (controller.signal.aborted || error.message === "http") throw error;
+
+        // No CORS: Image onerror still treats HTTP 500 as down.
+        await new Promise((resolve, reject) => {
+          const img = new Image();
+          const stop = (fn) => () => {
+            controller.signal.removeEventListener("abort", onImgAbort);
+            img.onload = img.onerror = null;
+            fn();
+          };
+          const onImgAbort = stop(() => reject(new Error("aborted")));
+          if (controller.signal.aborted) {
+            onImgAbort();
+            return;
+          }
+          controller.signal.addEventListener("abort", onImgAbort, { once: true });
+          img.onload = stop(resolve);
+          img.onerror = stop(() => reject(new Error("unreachable")));
+          img.src = src;
+        });
+        return { type, url };
+      }
     } finally {
       clearTimeout(timer);
+      signal?.removeEventListener("abort", onAbort);
     }
   };
 
   const pick = async () => {
+    // First healthy mirror wins. Prefer fallback for RU only by giving global a shorter timeout.
+    const ruBias = isRu();
+    const select = new AbortController();
+
     try {
-      // If the user's language is Russian, prefer fallback unless global is clearly reachable fast.
-      const ruBias = isRu();
-      const globalTimeout = ruBias ? 800 : 1200;
-      const fallbackTimeout = 1200;
       return await Promise.any([
-        probe("global", globalTimeout),
-        probe("fallback", fallbackTimeout),
+        probe("global", ruBias ? 800 : 1200, select.signal),
+        probe("fallback", 1200, select.signal),
       ]);
     } catch {
-      return { type: "fallback", url: getTargetUrl("fallback") };
+      return { type: "global", url: getTargetUrl("global") };
+    } finally {
+      select.abort();
     }
   };
 
